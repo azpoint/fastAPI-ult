@@ -2,109 +2,59 @@ from typing import Any
 from fastapi import FastAPI, status, HTTPException
 from scalar_fastapi import get_scalar_api_reference
 from app.schemas import ShipmentCreate, ShipmentRead, ShipmentUpdate
+from app.database import Database
 
 app = FastAPI()
 
-shipments = {
-    24345: {
-        "weight": 0.2,
-        "content": "paint",
-        "status": "delivered",
-        "destination": "New York",
-    },
-    24346: {
-        "weight": 3.5,
-        "content": "books",
-        "status": "in_transit",
-        "destination": "Los Angeles",
-    },
-    24347: {
-        "weight": 1.1,
-        "content": "laptop",
-        "status": "placed",
-        "destination": "Chicago",
-    },
-    24348: {
-        "weight": 2.8,
-        "content": "clothes",
-        "status": "placed",
-        "destination": "Houston",
-    },
-    24349: {
-        "weight": 0.7,
-        "content": "toys",
-        "status": "delivered",
-        "destination": "Miami",
-    },
-    24350: {
-        "weight": 5.0,
-        "content": "furniture",
-        "status": "in_transit",
-        "destination": "Seattle",
-    },
-}
+db = Database()
 
+# # Get the latest shipment
+# @app.get("/shipment/latest")
+# async def get_latest_shipment() -> dict[str, Any]:
+#     last_id = max(shipments.keys())
 
-# Get the latest shipment
-@app.get("/shipment/latest")
-async def get_latest_shipment() -> dict[str, Any]:
-    last_id = max(shipments.keys())
-
-    return {"id": last_id, **shipments[last_id]}
+#     return {"id": last_id, **shipments[last_id]}
 
 
 ### Get shipment by ID
 @app.get("/shipment", response_model=ShipmentRead)
 async def get_shipment_by_id(id: int):
 
-    if not id:
+    shipment = db.get(id)
+
+    if shipment is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="You need to provide an ID"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Given id doesn't exist!"
         )
 
-    return shipments[id]
+    return shipment
 
 
 # Create shipment
-@app.post("/shipment")  # , response_model=ShipmentRead)
+@app.post("/shipment", response_model=None)
 async def submit_shipment(req_body: ShipmentCreate):
 
-    new_id = max(shipments.keys()) + 1
+    new_id = db.create(req_body)
 
-    shipments[new_id] = {
-        "content": req_body.content,
-        "weight": req_body.weight,
-        "status": "placed",
-        "destination": req_body.destination,
-    }
-
-    return {"id": new_id, **shipments[new_id]}
+    return {"id": new_id}
 
 
 # Update shipment by field
 @app.patch("/shipment", response_model=ShipmentRead)
-async def update_shipment(id: int, body: ShipmentUpdate):
+async def update_shipment(id: int, req_body: ShipmentUpdate):
 
-    if id not in shipments:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Shipment ID does not exist"
-        )
+    shipment = db.update(id, req_body)
 
-    shipments[id].update(body)
-
-    return shipments[id]
+    return shipment
 
 
 # Delete shipment by id
 @app.delete("/shipment")
 async def delete_shipment_by_id(id: int) -> dict[str, Any]:
 
-    if id not in shipments:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    db.delete(id)
 
-    shipment_deleted = shipments.pop(id)
-
-    return {"detail": f"Shipment {id} deleted!", "deleted": shipment_deleted}
+    return {"detail": f"Shipment {id} deleted!"}
 
 
 ### API Documentation
