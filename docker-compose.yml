@@ -1,0 +1,12 @@
+services:
+  db:
+    image: postgres:16.8-alpine
+    container_name: postgre_DB
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: shipment_app
+    volumes:
+      - ../db_test:/var/lib/postgresql/data
