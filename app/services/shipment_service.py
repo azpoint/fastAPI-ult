@@ -26,7 +26,7 @@ class ShipmentService:
 
         return new_shipment
 
-    async def update(self, shipment_update: ShipmentUpdate) -> Shipment | None:
+    async def update(self, shipment_update: ShipmentUpdate, id: int) -> Shipment | None:
 
         update = shipment_update.model_dump(exclude_none=True)
 
@@ -47,6 +47,8 @@ class ShipmentService:
         self.session_db.add(shipment)
         self.session_db.commit()
         self.session_db.refresh(shipment)
+
+        return shipment
 
     async def delete(self, id: int) -> None:
         shipment = self.session_db.get(Shipment, id)

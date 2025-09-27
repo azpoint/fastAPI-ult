@@ -5,6 +5,7 @@ from fastapi import status, HTTPException
 from app.database.session import SessionDep
 from app.database.models import Shipment, ShipmentStatus
 from app.schemas.shipment_schema import ShipmentCreate, ShipmentRead, ShipmentUpdate
+from app.services.shipment_service import ShipmentService
 
 
 router = APIRouter()
@@ -21,7 +22,7 @@ router = APIRouter()
 @router.get("/shipment", response_model=ShipmentRead)
 async def get_shipment_by_id(id: int, session_db: SessionDep):
 
-    shipment = session_db.get(Shipment, id)
+    shipment = await ShipmentService(session_db).get(id)
 
     if shipment is None:
         raise HTTPException(
@@ -32,44 +33,19 @@ async def get_shipment_by_id(id: int, session_db: SessionDep):
 
 
 # Create shipment
-@router.post("/shipment", response_model=None)
+@router.post("/shipment", response_model=Shipment)
 async def submit_shipment(req_body: ShipmentCreate, session_db: SessionDep):
 
-    new_shipment = Shipment(
-        **req_body.model_dump(),
-        status=ShipmentStatus.placed,
-        estimated_delivery=datetime.now() + timedelta(days=3),
-    )
+    shipment = await ShipmentService(session_db).add(req_body)
 
-    session_db.add(new_shipment)
-    session_db.commit()
-    session_db.refresh(new_shipment)
-
-    return {"id": new_shipment.id}
+    return shipment
 
 
 # Update shipment by field
 @router.patch("/shipment", response_model=ShipmentRead)
 async def update_shipment(id: int, req_body: ShipmentUpdate, session_db: SessionDep):
 
-    update = req_body.model_dump(exclude_none=True)
-
-    if not update:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="No data provided to update"
-        )
-
-    shipment = session_db.get(Shipment, id)
-
-    if shipment is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found"
-        )
-
-    shipment.sqlmodel_update(update)
-    session_db.add(shipment)
-    session_db.commit()
-    session_db.refresh(shipment)
+    shipment = await ShipmentService(session_db).update(req_body, id)
 
     return shipment
 
@@ -78,14 +54,6 @@ async def update_shipment(id: int, req_body: ShipmentUpdate, session_db: Session
 @router.delete("/shipment")
 async def delete_shipment_by_id(id: int, session_db: SessionDep) -> dict[str, Any]:
 
-    shipment = session_db.get(Shipment, id)
-
-    if shipment is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f"Shipment {id} not found!"
-        )
-
-    session_db.delete(shipment)
-    session_db.commit()
+    await ShipmentService(session_db).delete(id)
 
     return {"detail": f"Shipment {id} deleted!"}

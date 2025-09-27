@@ -13,7 +13,7 @@ class ShipmentRead(BaseModel):
 
 class ShipmentCreate(BaseModel):
     content: str
-    weight: float = Field(le=25)
+    weight: float = Field(le=25000)
     destination: str
 
 
