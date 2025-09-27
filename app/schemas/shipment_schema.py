@@ -22,7 +22,7 @@ class ShipmentUpdate(BaseModel):
     estimated_delivery: datetime | None = Field(default=None)
 
 
-### Base model inheritance version ###
+### Base model class version ###
 # class BaseShipment(BaseModel):
 #     content: str
 #     weight: float = Field(le=25)

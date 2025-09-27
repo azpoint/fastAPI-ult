@@ -2,7 +2,7 @@ import sqlite3
 from typing import Any
 from contextlib import contextmanager
 
-from app.schemas import ShipmentCreate, ShipmentUpdate
+from app.schemas.shipment_schema import ShipmentCreate, ShipmentUpdate
 
 
 class Database:
@@ -83,9 +83,3 @@ def managed_db():
     yield db
 
     db.close()
-
-
-# SQL Model
-with managed_db() as db:
-    print(db.get(12701))
-    print(db.get(12702))
