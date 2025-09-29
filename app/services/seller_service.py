@@ -1,6 +1,9 @@
+from datetime import datetime, timedelta
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
+from app.config import JWT_SECRET
 import bcrypt
+import jwt
 from app.schemas.seller_schema import SellerCreate
 from app.database.models import Seller
 
@@ -31,9 +34,8 @@ class SellerService:
 
         return seller
 
-    async def login(self, email: str, password: str) -> Seller:
-
-        # Validate the credentials
+    # Validate the credentials and return auth token
+    async def login(self, email: str, password: str) -> str:
 
         result = self.session_db.exec(select(Seller).where(Seller.email == email))
 
@@ -52,4 +54,13 @@ class SellerService:
                 detail="Invalid password or email",
             )
 
-        return seller
+        token = jwt.encode(
+            payload={
+                "user": {"name": seller.name, "email": seller.email},
+                "exp": datetime.now() + timedelta(days=1),
+            },
+            algorithm="HS256",
+            key=JWT_SECRET,
+        )
+
+        return token

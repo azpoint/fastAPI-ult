@@ -21,6 +21,11 @@
 from dotenv import load_dotenv
 import os
 
+from pydantic_settings import BaseSettings
+
 load_dotenv()
 
 POSTGRES_URL = f"postgresql://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@{os.getenv("POSTGRES_SERVER")}:{os.getenv("POSTGRES_PORT")}/{os.getenv("POSTGRES_DB")}"
+
+
+JWT_SECRET = os.getenv("JWT_SECRET")
