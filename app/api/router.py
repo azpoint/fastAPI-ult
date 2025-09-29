@@ -8,7 +8,7 @@ from app.schemas.shipment_schema import ShipmentCreate, ShipmentRead, ShipmentUp
 from app.services.shipment_service import ShipmentService
 
 
-router = APIRouter()
+router = APIRouter(prefix="/shipment", tags=["Shipment"])
 
 # # Get the latest shipment
 # @router.get("/shipment/latest")
@@ -19,7 +19,7 @@ router = APIRouter()
 
 
 ### Get shipment by ID
-@router.get("/shipment", response_model=ShipmentRead)
+@router.get("/", response_model=ShipmentRead)
 async def get_shipment_by_id(id: int, session_db: SessionDep):
 
     shipment = await ShipmentService(session_db).get(id)
@@ -33,7 +33,7 @@ async def get_shipment_by_id(id: int, session_db: SessionDep):
 
 
 # Create shipment
-@router.post("/shipment", response_model=Shipment)
+@router.post("/", response_model=Shipment)
 async def submit_shipment(req_body: ShipmentCreate, session_db: SessionDep):
 
     shipment = await ShipmentService(session_db).add(req_body)
@@ -42,7 +42,7 @@ async def submit_shipment(req_body: ShipmentCreate, session_db: SessionDep):
 
 
 # Update shipment by field
-@router.patch("/shipment", response_model=ShipmentRead)
+@router.patch("/", response_model=ShipmentRead)
 async def update_shipment(id: int, req_body: ShipmentUpdate, session_db: SessionDep):
 
     shipment = await ShipmentService(session_db).update(req_body, id)
@@ -51,7 +51,7 @@ async def update_shipment(id: int, req_body: ShipmentUpdate, session_db: Session
 
 
 # Delete shipment by id
-@router.delete("/shipment")
+@router.delete("/")
 async def delete_shipment_by_id(id: int, session_db: SessionDep) -> dict[str, Any]:
 
     await ShipmentService(session_db).delete(id)
