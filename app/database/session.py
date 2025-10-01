@@ -2,7 +2,7 @@ from typing import Annotated
 from fastapi import Depends
 from sqlalchemy import create_engine
 from sqlmodel import SQLModel, Session
-from app.config import POSTGRES_URL
+from app.env_config import POSTGRES_URL
 
 
 engine = create_engine(url=POSTGRES_URL)

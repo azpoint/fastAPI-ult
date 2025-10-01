@@ -1,19 +1,22 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from app.schemas.seller_schema import SellerCreate, SellerRead
 from app.database.session import SessionDep
 from app.services.seller_service import SellerService
+from app.core.security import oauth2_scheme
+from app.utils import decode_access_token
+from app.database.models import Seller
 
 
-router = APIRouter(prefix="/seller", tags=["seller"])
+router = APIRouter(prefix="/seller", tags=["Seller"])
 
 
 ### Register Seller
 @router.post("/signup", response_model=SellerRead)
 async def register_seller(credentials: SellerCreate, session_db: SessionDep):
 
-    return await SellerService(session_db).add(credentials)
+    return SellerService(session_db).add(credentials)
 
 
 ### Login the Seller
@@ -24,3 +27,20 @@ async def login_seller(
     token = SellerService(session_db).login(form_data.username, form_data.password)
 
     return {"access_token": token, "type": "jwt"}
+
+
+@router.get("/dashboard")
+async def get_dashboard(
+    token: Annotated[str, Depends(oauth2_scheme)], session_db: SessionDep
+) -> Seller | None:
+
+    data = decode_access_token(token)
+
+    if data is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Inavalid access token"
+        )
+
+    seller = session_db.get(Seller, data["user"]["id"])
+
+    return seller
