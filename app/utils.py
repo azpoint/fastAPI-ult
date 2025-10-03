@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-
+from uuid import uuid4
 from fastapi import HTTPException
 from app.env_config import JWT_SECRET, JWT_ALGORITHM
 import jwt
@@ -7,7 +7,11 @@ import jwt
 
 def generate_access_token(data: dict, expire: timedelta = timedelta(days=1)) -> str:
     token = jwt.encode(
-        payload={**data, "exp": datetime.now(timezone.utc) + expire},
+        payload={
+            **data,
+            "jti": str(uuid4()),
+            "exp": datetime.now(timezone.utc) + expire,
+        },
         algorithm=JWT_ALGORITHM,
         key=JWT_SECRET,
     )
