@@ -15,3 +15,5 @@ POSTGRES_URL = f"postgresql://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_
 
 JWT_SECRET = os.getenv("JWT_SECRET")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = os.getenv("REDIS_PORT")
