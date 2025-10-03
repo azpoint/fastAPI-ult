@@ -2,13 +2,12 @@ from typing import Annotated
 from fastapi import APIRouter
 from typing import Any
 from fastapi import status, HTTPException, Depends
-from app.database.models import Seller
 from app.database.session import SessionDep
 from app.database.models import Shipment
 from app.schemas.shipment_schema import ShipmentCreate, ShipmentRead, ShipmentUpdate
 from app.services.shipment_service import ShipmentService
 from app.utils import decode_access_token
-from app.core.security import oauth2_scheme
+from app.auth.security import oauth2_scheme
 
 
 router = APIRouter(prefix="/shipment", tags=["Shipment"])

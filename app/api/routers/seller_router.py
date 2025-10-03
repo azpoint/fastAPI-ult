@@ -5,7 +5,7 @@ from app.database.redis import add_jti_to_blacklist
 from app.schemas.seller_schema import SellerCreate, SellerRead
 from app.database.session import SessionDep
 from app.services.seller_service import SellerService
-from app.core.security import oauth2_scheme
+from app.auth.security import oauth2_scheme
 from app.utils import decode_access_token, generate_access_token
 from app.database.models import Seller
 
