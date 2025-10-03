@@ -1,10 +1,14 @@
+from typing import Annotated
 from fastapi import APIRouter
 from typing import Any
-from fastapi import status, HTTPException
+from fastapi import status, HTTPException, Depends
+from app.database.models import Seller
 from app.database.session import SessionDep
 from app.database.models import Shipment
 from app.schemas.shipment_schema import ShipmentCreate, ShipmentRead, ShipmentUpdate
 from app.services.shipment_service import ShipmentService
+from app.utils import decode_access_token
+from app.core.security import oauth2_scheme
 
 
 router = APIRouter(prefix="/shipment", tags=["Shipment"])
@@ -19,7 +23,16 @@ router = APIRouter(prefix="/shipment", tags=["Shipment"])
 
 ### Get shipment by ID
 @router.get("/", response_model=ShipmentRead)
-async def get_shipment_by_id(id: int, session_db: SessionDep):
+async def get_shipment_by_id(
+    token: Annotated[str, Depends(oauth2_scheme)], id: int, session_db: SessionDep
+):
+
+    user = decode_access_token(token)
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Inavalid access token"
+        )
 
     shipment = await ShipmentService(session_db).get(id)
 
@@ -33,7 +46,18 @@ async def get_shipment_by_id(id: int, session_db: SessionDep):
 
 # Create shipment
 @router.post("/", response_model=Shipment)
-async def submit_shipment(req_body: ShipmentCreate, session_db: SessionDep):
+async def submit_shipment(
+    token: Annotated[str, Depends(oauth2_scheme)],
+    req_body: ShipmentCreate,
+    session_db: SessionDep,
+):
+
+    user = decode_access_token(token)
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Inavalid access token"
+        )
 
     shipment = await ShipmentService(session_db).add(req_body)
 
@@ -42,7 +66,19 @@ async def submit_shipment(req_body: ShipmentCreate, session_db: SessionDep):
 
 # Update shipment by field
 @router.patch("/", response_model=ShipmentRead)
-async def update_shipment(id: int, req_body: ShipmentUpdate, session_db: SessionDep):
+async def update_shipment(
+    token: Annotated[str, Depends(oauth2_scheme)],
+    id: int,
+    req_body: ShipmentUpdate,
+    session_db: SessionDep,
+):
+
+    user = decode_access_token(token)
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Inavalid access token"
+        )
 
     shipment = await ShipmentService(session_db).update(req_body, id)
 
@@ -51,7 +87,16 @@ async def update_shipment(id: int, req_body: ShipmentUpdate, session_db: Session
 
 # Delete shipment by id
 @router.delete("/")
-async def delete_shipment_by_id(id: int, session_db: SessionDep) -> dict[str, Any]:
+async def delete_shipment_by_id(
+    token: Annotated[str, Depends(oauth2_scheme)], id: int, session_db: SessionDep
+) -> dict[str, Any]:
+
+    user = decode_access_token(token)
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Inavalid access token"
+        )
 
     await ShipmentService(session_db).delete(id)
 
