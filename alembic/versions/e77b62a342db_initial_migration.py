@@ -1,7 +1,7 @@
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
-from app.database.models import ShipmentStatus  # import your Python enum
+from app.database.models import ShipmentStatus
 
 revision = "0001_initial"
 down_revision = None

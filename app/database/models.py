@@ -58,6 +58,7 @@ class Seller(SQLModel, table=True):
     name: str
     email: EmailStr
     password: str
+    address: str
 
     # ✅ Relationship is fine as is
     shipments: list[Shipment] = Relationship(
