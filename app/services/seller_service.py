@@ -36,7 +36,7 @@ class SellerService:
         return seller
 
     # Validate the credentials and return auth token
-    def login(self, email: str, password: str) -> str:
+    def token(self, email: str, password: str) -> str:
 
         result = self.session_db.exec(select(Seller).where(Seller.email == email))
 
@@ -56,7 +56,7 @@ class SellerService:
             )
 
         token = generate_access_token(
-            data={"user": {"name": seller.name, "id": seller.id}}
+            data={"user": {"name": seller.name, "id": str(seller.id)}}
         )
 
         return token

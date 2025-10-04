@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from app.database.redis import add_jti_to_blacklist
@@ -25,7 +26,7 @@ async def register_seller(credentials: SellerCreate, session_db: SessionDep):
 async def login_seller(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session_db: SessionDep
 ):
-    token = SellerService(session_db).login(form_data.username, form_data.password)
+    token = SellerService(session_db).token(form_data.username, form_data.password)
 
     return {"access_token": token, "type": "jwt"}
 
@@ -42,7 +43,7 @@ async def get_dashboard(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Inavalid access token"
         )
 
-    seller = session_db.get(Seller, user_data["user"]["id"])
+    seller = session_db.get(Seller, UUID(user_data["user"]["id"]))
 
     return seller
 

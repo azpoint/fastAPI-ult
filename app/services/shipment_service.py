@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
+from uuid import UUID
 from fastapi import HTTPException, status
 from sqlmodel import Session
-from app.database.models import Shipment, ShipmentStatus
+from app.database.models import Shipment, ShipmentStatus, Seller
 from app.schemas.shipment_schema import ShipmentCreate, ShipmentUpdate
 
 
@@ -9,15 +10,18 @@ class ShipmentService:
     def __init__(self, session_db: Session) -> None:
         self.session_db = session_db
 
-    async def get(self, id: int) -> Shipment | None:
+    async def get(self, id: UUID) -> Shipment | None:
         return self.session_db.get(Shipment, id)
 
-    async def add(self, shipment_create: ShipmentCreate) -> Shipment | None:
+    async def add(
+        self, shipment_create: ShipmentCreate, seller_id: str
+    ) -> Shipment | None:
 
         new_shipment = Shipment(
             **shipment_create.model_dump(),
             status=ShipmentStatus.placed,
             estimated_delivery=datetime.now() + timedelta(days=3),
+            seller_id=UUID(seller_id),
         )
 
         self.session_db.add(new_shipment)
@@ -26,7 +30,9 @@ class ShipmentService:
 
         return new_shipment
 
-    async def update(self, shipment_update: ShipmentUpdate, id: int) -> Shipment | None:
+    async def update(
+        self, shipment_update: ShipmentUpdate, shipment_id: UUID
+    ) -> Shipment | None:
 
         update = shipment_update.model_dump(exclude_none=True)
 
@@ -36,7 +42,7 @@ class ShipmentService:
                 detail="No data provided to update",
             )
 
-        shipment = self.session_db.get(Shipment, id)
+        shipment = self.session_db.get(Shipment, shipment_id)
 
         if shipment is None:
             raise HTTPException(
@@ -50,13 +56,13 @@ class ShipmentService:
 
         return shipment
 
-    async def delete(self, id: int) -> None:
-        shipment = self.session_db.get(Shipment, id)
+    async def delete(self, shipment_id: UUID) -> None:
+        shipment = self.session_db.get(Shipment, shipment_id)
 
         if shipment is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Shipment {id} not found!",
+                detail=f"Shipment {str(shipment_id)} not found!",
             )
 
         self.session_db.delete(shipment)
