@@ -29,7 +29,7 @@ async def get_shipment_by_id(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Inavalid access token"
         )
 
-    shipment = await ShipmentService(session_db).get(id)
+    shipment = ShipmentService(session_db).get(id)
 
     if shipment is None:
         raise HTTPException(
@@ -54,7 +54,7 @@ async def create_shipment(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Inavalid access token"
         )
 
-    shipment = await ShipmentService(session_db).add(req_body, user["user"]["id"])  # type: ignore
+    shipment = ShipmentService(session_db).add(req_body, user["user"]["id"])  # type: ignore
 
     return shipment
 
@@ -75,7 +75,7 @@ async def update_shipment(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Inavalid access token"
         )
 
-    shipment = await ShipmentService(session_db).update(req_body, shipment_id)
+    shipment = ShipmentService(session_db).update(req_body, shipment_id)
 
     return shipment
 

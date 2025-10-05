@@ -7,7 +7,7 @@ from app.schemas.seller_schema import SellerCreate, SellerRead
 from app.database.session import SessionDep
 from app.services.seller_service import SellerService
 from app.auth.security import oauth2_scheme_seller
-from app.utils import decode_access_token, generate_access_token
+from app.utils import decode_access_token
 from app.database.models import Seller
 
 
@@ -24,7 +24,8 @@ async def create_seller(credentials: SellerCreate, session_db: SessionDep):
 ### Login the Seller
 @router.post("/login")
 async def login_seller(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session_db: SessionDep
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    session_db: SessionDep,
 ):
     token = SellerService(session_db).token(form_data.username, form_data.password)
 

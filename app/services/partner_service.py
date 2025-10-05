@@ -23,6 +23,11 @@ class DeliveryPartnerService:
     def get(self, id: UUID) -> DeliveryPartner | None:
         return self.session_db.get(DeliveryPartner, id)
 
+    def get_by_name(self, name: str) -> DeliveryPartner | None:
+        query = select(DeliveryPartner).where(DeliveryPartner.name == name)
+        result = self.session_db.exec(query)
+        return result.first()
+
     def add(self, req_body: DeliveryPartnerCreate) -> DeliveryPartner:
 
         partner = DeliveryPartner(
