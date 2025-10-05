@@ -8,7 +8,7 @@ from app.database.models import Shipment
 from app.schemas.shipment_schema import ShipmentCreate, ShipmentRead, ShipmentUpdate
 from app.services.shipment_service import ShipmentService
 from app.utils import decode_access_token
-from app.auth.security import oauth2_scheme
+from app.auth.security import oauth2_scheme_seller
 
 
 router = APIRouter(prefix="/shipment", tags=["Shipment"])
@@ -17,7 +17,9 @@ router = APIRouter(prefix="/shipment", tags=["Shipment"])
 ### Get shipment by ID
 @router.get("/", response_model=ShipmentRead)
 async def get_shipment_by_id(
-    token: Annotated[str, Depends(oauth2_scheme)], id: UUID, session_db: SessionDep
+    token: Annotated[str, Depends(oauth2_scheme_seller)],
+    id: UUID,
+    session_db: SessionDep,
 ):
 
     user = decode_access_token(token)
@@ -40,7 +42,7 @@ async def get_shipment_by_id(
 ### Create shipment
 @router.post("/", response_model=Shipment)
 async def create_shipment(
-    token: Annotated[str, Depends(oauth2_scheme)],
+    token: Annotated[str, Depends(oauth2_scheme_seller)],
     req_body: ShipmentCreate,
     session_db: SessionDep,
 ):
@@ -60,7 +62,7 @@ async def create_shipment(
 ### Update shipment by field
 @router.patch("/", response_model=ShipmentRead)
 async def update_shipment(
-    token: Annotated[str, Depends(oauth2_scheme)],
+    token: Annotated[str, Depends(oauth2_scheme_seller)],
     shipment_id: UUID,
     req_body: ShipmentUpdate,
     session_db: SessionDep,
@@ -81,7 +83,7 @@ async def update_shipment(
 ### Delete shipment by id
 @router.delete("/")
 async def delete_shipment_by_id(
-    token: Annotated[str, Depends(oauth2_scheme)],
+    token: Annotated[str, Depends(oauth2_scheme_seller)],
     shipment_id: UUID,
     session_db: SessionDep,
 ) -> dict[str, Any]:

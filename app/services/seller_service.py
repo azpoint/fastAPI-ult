@@ -1,9 +1,6 @@
-from datetime import datetime, timedelta
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
-from app.env_config import JWT_SECRET
 import bcrypt
-import jwt
 from app.schemas.seller_schema import SellerCreate
 from app.database.models import Seller
 from app.utils import generate_access_token

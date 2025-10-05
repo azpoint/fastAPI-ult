@@ -6,7 +6,7 @@ from app.database.redis import add_jti_to_blacklist
 from app.schemas.seller_schema import SellerCreate, SellerRead
 from app.database.session import SessionDep
 from app.services.seller_service import SellerService
-from app.auth.security import oauth2_scheme
+from app.auth.security import oauth2_scheme_seller
 from app.utils import decode_access_token, generate_access_token
 from app.database.models import Seller
 
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/seller", tags=["Seller"])
 
 ### Register Seller
 @router.post("/signup", response_model=SellerRead)
-async def register_seller(credentials: SellerCreate, session_db: SessionDep):
+async def create_seller(credentials: SellerCreate, session_db: SessionDep):
 
     return SellerService(session_db).add(credentials)
 
@@ -33,7 +33,7 @@ async def login_seller(
 
 @router.get("/dashboard")
 async def get_dashboard(
-    token: Annotated[str, Depends(oauth2_scheme)], session_db: SessionDep
+    token: Annotated[str, Depends(oauth2_scheme_seller)], session_db: SessionDep
 ) -> Seller | None:
 
     user_data = decode_access_token(token)
@@ -49,7 +49,7 @@ async def get_dashboard(
 
 
 @router.get("/logout")
-async def logout_seller(token: str = Depends(oauth2_scheme)):
+async def logout_seller(token: str = Depends(oauth2_scheme_seller)):
 
     user_data = decode_access_token(token)
 

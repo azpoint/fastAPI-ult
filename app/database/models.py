@@ -21,7 +21,7 @@ class ShipmentStatus(str, Enum):
 # SHIPMENT MODEL
 # -------------------------------------------------------
 class Shipment(SQLModel, table=True):
-    __tablename__ = "shipment"
+    __tablename__ = "shipment"  # type: ignore
 
     id: UUID = Field(
         default_factory=uuid4,
@@ -57,7 +57,7 @@ class Shipment(SQLModel, table=True):
 # SELLER MODEL
 # -------------------------------------------------------
 class Seller(SQLModel, table=True):
-    __tablename__ = "seller"
+    __tablename__ = "seller"  # type: ignore
 
     id: UUID = Field(
         default_factory=uuid4,
@@ -85,7 +85,7 @@ class Seller(SQLModel, table=True):
 # DELIVERY PARTNER
 # -------------------------------------------------------
 class DeliveryPartner(SQLModel, table=True):
-    __tablename__ = "delivery_partner"
+    __tablename__ = "delivery_partner"  # type: ignore
 
     id: UUID = Field(
         default_factory=uuid4,
