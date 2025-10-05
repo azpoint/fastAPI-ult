@@ -64,3 +64,18 @@ class Seller(SQLModel, table=True):
     shipments: list[Shipment] = Relationship(
         back_populates="seller", sa_relationship_kwargs={"lazy": "selectin"}
     )
+
+
+# -------------------------------------------------------
+# DELIVERY PARTNER
+# -------------------------------------------------------
+class DeliveryPartner(SQLModel, table=True):
+
+    id: UUID = Field(
+        default_factory=uuid4,  # ✅ automatically generate a UUID
+        sa_column=Column(postgresql.UUID(as_uuid=True), primary_key=True),
+    )
+
+    name: str
+    email: EmailStr
+    password: str
