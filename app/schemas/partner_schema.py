@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 class DeliveryPartnerCreate(BaseModel):
@@ -19,5 +19,5 @@ class DeliveryPartnerRead(BaseModel):
 class DeliveryPartnerUpdate(BaseModel):
     name: str
     email: EmailStr
-    serviceable_zip_codes: list[str]
-    max_handling_capacity: int
+    serviceable_zip_codes: list[str] | None = Field(default=None)
+    max_handling_capacity: int | None = Field(default=None)
