@@ -1,10 +1,10 @@
-from datetime import datetime
+from datetime import date, datetime
 from uuid import uuid4, UUID
 from enum import Enum
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
 from sqlalchemy.dialects import postgresql
-from sqlalchemy import Column
+from sqlalchemy import ARRAY, String, Column
 
 
 # -------------------------------------------------------
@@ -21,25 +21,34 @@ class ShipmentStatus(str, Enum):
 # SHIPMENT MODEL
 # -------------------------------------------------------
 class Shipment(SQLModel, table=True):
-    # __tablename__ = "shipment"
-    # - Use `default_factory=uuid4` to auto-generate UUIDs in Python.
-    # - Use `postgresql.UUID(as_uuid=True)` for correct Postgres mapping.
+    __tablename__ = "shipment"
+
     id: UUID = Field(
-        default_factory=uuid4,  # ✅ automatically generate a UUID
+        default_factory=uuid4,
         sa_column=Column(postgresql.UUID(as_uuid=True), primary_key=True),
     )
 
-    content: str
-    weight: float = Field(le=25000)
-    destination: str
+    created_at: datetime = Field(
+        sa_column=Column(
+            postgresql.TIMESTAMP,
+            default=datetime.now,
+        )
+    )
+
+    content: str = Field(min_length=1, max_length=255)
+    weight: float = Field(gt=0, le=25000)
+    destination: str = Field(min_length=1, max_length=255)
     status: ShipmentStatus
     estimated_delivery: datetime
 
-    # ✅ Keep this foreign key — just ensure the DB column exists via migration
     seller_id: UUID = Field(foreign_key="seller.id")
-
-    # ✅ Relationship stays correct
     seller: "Seller" = Relationship(
+        back_populates="shipments", sa_relationship_kwargs={"lazy": "selectin"}
+    )
+
+    delivery_partner_id: UUID = Field(foreign_key="delivery_partner.id")
+
+    delivery_partner: "DeliveryPartner" = Relationship(
         back_populates="shipments", sa_relationship_kwargs={"lazy": "selectin"}
     )
 
@@ -48,11 +57,18 @@ class Shipment(SQLModel, table=True):
 # SELLER MODEL
 # -------------------------------------------------------
 class Seller(SQLModel, table=True):
-    # - Added `default_factory=uuid4` to auto-generate IDs
-    # - Specified `postgresql.UUID(as_uuid=True)` for proper Postgres UUID type
+    __tablename__ = "seller"
+
     id: UUID = Field(
-        default_factory=uuid4,  # ✅ automatically generate a UUID
+        default_factory=uuid4,
         sa_column=Column(postgresql.UUID(as_uuid=True), primary_key=True),
+    )
+
+    created_at: datetime = Field(
+        sa_column=Column(
+            postgresql.TIMESTAMP,
+            default=datetime.now,
+        )
     )
 
     name: str
@@ -60,7 +76,6 @@ class Seller(SQLModel, table=True):
     password: str
     address: str
 
-    # ✅ Relationship is fine as is
     shipments: list[Shipment] = Relationship(
         back_populates="seller", sa_relationship_kwargs={"lazy": "selectin"}
     )
@@ -70,12 +85,27 @@ class Seller(SQLModel, table=True):
 # DELIVERY PARTNER
 # -------------------------------------------------------
 class DeliveryPartner(SQLModel, table=True):
+    __tablename__ = "delivery_partner"
 
     id: UUID = Field(
-        default_factory=uuid4,  # ✅ automatically generate a UUID
+        default_factory=uuid4,
         sa_column=Column(postgresql.UUID(as_uuid=True), primary_key=True),
+    )
+
+    created_at: datetime = Field(
+        sa_column=Column(
+            postgresql.TIMESTAMP,
+            default=datetime.now,
+        )
     )
 
     name: str
     email: EmailStr
     password: str
+
+    serviceable_zip_codes: list[str] = Field(sa_column=Column(ARRAY(String)))
+    max_handling_capacity: int
+
+    shipments: list[Shipment] = Relationship(
+        back_populates="delivery_partner", sa_relationship_kwargs={"lazy": "selectin"}
+    )
