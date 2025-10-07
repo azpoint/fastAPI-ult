@@ -72,7 +72,7 @@ class Seller(SQLModel, table=True):
     )
 
     name: str
-    email: EmailStr
+    email: EmailStr = Field(postgresql.VARCHAR, unique=True, nullable=False, index=True)
     password: str
     address: str
 
