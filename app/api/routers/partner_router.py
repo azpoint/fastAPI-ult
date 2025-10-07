@@ -1,8 +1,8 @@
 from typing import Annotated
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-from app.database.redis import add_jti_to_blacklist
+from pydantic import EmailStr
+from fastapi.responses import JSONResponse
 from app.schemas.partner_schema import (
     DeliveryPartnerCreate,
     DeliveryPartnerRead,
@@ -10,78 +10,76 @@ from app.schemas.partner_schema import (
 )
 from app.database.session import SessionDep
 from app.services.partner_service import DeliveryPartnerService
-from app.auth.security import oauth2_scheme_partner
-from app.utils import decode_access_token
-from app.database.models import DeliveryPartner
+from app.auth.security import oauth2_scheme_seller
 
 
 router = APIRouter(prefix="/partner", tags=["Delivery Partner"])
 
 
-### Create Partner
-@router.post("/signup", response_model=DeliveryPartnerRead)
-async def create_partner(req_body: DeliveryPartnerCreate, session_db: SessionDep):
-
-    return DeliveryPartnerService(session_db).add(req_body)
-
-
-### Login the Partner
-@router.post("/login")
-async def login_partner(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session_db: SessionDep
+### Get Partner
+@router.get("/signup", response_model=DeliveryPartnerRead)
+async def get_partner(
+    _token: Annotated[str, Depends(oauth2_scheme_seller)],
+    email: EmailStr,
+    session_db: SessionDep,
 ):
-    token = DeliveryPartnerService(session_db).token(
-        form_data.username, form_data.password
-    )
+    service_response = DeliveryPartnerService(session_db).get_by_email(email)
 
-    return {"access_token": token, "type": "jwt"}
-
-
-@router.get("/dashboard")
-async def get_dashboard(
-    token: Annotated[str, Depends(oauth2_scheme_partner)], session_db: SessionDep
-) -> DeliveryPartner | None:
-
-    user_data = decode_access_token(token)
-
-    if user_data is None:
+    if service_response is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Inavalid access token"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Partner not found"
         )
 
-    partner = session_db.get(DeliveryPartner, UUID(user_data["user"]["id"]))
+    return service_response
 
-    return partner
+
+### Create Partner
+@router.post("/signup", response_model=DeliveryPartnerRead)
+async def create_partner(
+    _token: Annotated[str, Depends(oauth2_scheme_seller)],
+    req_body: DeliveryPartnerCreate,
+    session_db: SessionDep,
+):
+    service_response = DeliveryPartnerService(session_db).add(req_body)
+
+    if service_response is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Partner not found"
+        )
+
+    return service_response
 
 
 ### Update Delivery Partner
-@router.patch("/")
+@router.patch("/{current_email}")
 async def update_delivery_partner(
-    token: Annotated[str, Depends(oauth2_scheme_partner)],
+    _token: Annotated[str, Depends(oauth2_scheme_seller)],
     req_body: DeliveryPartnerUpdate,
+    current_email: EmailStr,
     session_db: SessionDep,
 ):
-    return DeliveryPartnerService(session_db).update(req_body, token)
 
+    service_response = DeliveryPartnerService(session_db).update(
+        req_body, current_email
+    )
 
-### Logout Partner
-@router.get("/logout")
-async def logout_partner(token: str = Depends(oauth2_scheme_partner)):
-
-    user_data = decode_access_token(token)
-
-    if user_data is None:
+    if service_response is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid access token"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Partner not found"
         )
 
-    jti = user_data.get("jti")
+    return service_response
 
-    if jti is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Missing jti in token"
-        )
 
-    await add_jti_to_blacklist(jti)
+@router.delete("/{uuid}")
+async def delete_delivery_partner(
+    _token: Annotated[str, Depends(oauth2_scheme_seller)],
+    uuid: UUID,
+    session_db: SessionDep,
+):
+    result = DeliveryPartnerService(session_db).delete(uuid)
 
-    return {"detail": "Successfully logged out"}
+    if not result:
+        raise HTTPException(status_code=404, detail="Partner not found")
+
+    return JSONResponse(content=result, status_code=status.HTTP_202_ACCEPTED)

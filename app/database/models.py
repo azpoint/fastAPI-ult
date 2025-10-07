@@ -101,7 +101,6 @@ class DeliveryPartner(SQLModel, table=True):
 
     name: str
     email: EmailStr
-    password: str
 
     serviceable_zip_codes: list[str] = Field(sa_column=Column(ARRAY(String)))
     max_handling_capacity: int
