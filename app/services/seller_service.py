@@ -18,12 +18,19 @@ class SellerService:
     def __init__(self, session_db: Session) -> None:
         self.session_db = session_db
 
-    def add(self, credentials: SellerCreate) -> Seller:
+    def add(self, req_body: SellerCreate) -> Seller:
+
+        existing_seller = self.session_db.exec(
+            select(Seller).where(Seller.email == req_body.email)
+        ).first()
+
+        if existing_seller:
+            raise HTTPException(status_code=400, detail="Email already registered")
 
         seller = Seller(
-            **credentials.model_dump(exclude={"password"}),
+            **req_body.model_dump(exclude={"password"}),
             ### Hash password
-            password=password_hash(credentials.password)
+            password=password_hash(req_body.password)
         )
 
         self.session_db.add(seller)

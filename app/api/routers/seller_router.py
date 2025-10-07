@@ -16,9 +16,9 @@ router = APIRouter(prefix="/seller", tags=["Seller"])
 
 ### Register Seller
 @router.post("/signup", response_model=SellerRead)
-async def create_seller(credentials: SellerCreate, session_db: SessionDep):
+async def create_seller(req_body: SellerCreate, session_db: SessionDep):
 
-    return SellerService(session_db).add(credentials)
+    return SellerService(session_db).add(req_body)
 
 
 ### Login the Seller
@@ -33,7 +33,7 @@ async def login_seller(
 
 
 @router.get("/dashboard")
-async def get_dashboard(
+async def get_seller(
     token: Annotated[str, Depends(oauth2_scheme_seller)], session_db: SessionDep
 ) -> Seller | None:
 
