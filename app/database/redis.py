@@ -1,5 +1,5 @@
 from redis.asyncio import Redis
-from app.env_config import REDIS_HOST, REDIS_PORT
+from app.configs.env_config import REDIS_HOST, REDIS_PORT
 
 _token_blacklist = Redis(
     host=REDIS_HOST if REDIS_HOST is not None else "localhost",

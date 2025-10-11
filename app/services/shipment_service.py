@@ -4,17 +4,22 @@ from fastapi import HTTPException, status
 from sqlmodel import Session
 from app.database.models import Shipment, ShipmentStatus, Seller
 from app.schemas.shipment_schema import ShipmentCreate, ShipmentUpdate
+from app.services.notification_service import NotificationService
 from app.services.partner_service import DeliveryPartnerService
+from fastapi import BackgroundTasks
 
 
 class ShipmentService:
-    def __init__(self, session_db: Session) -> None:
+    def __init__(self, session_db: Session, background_tasks: BackgroundTasks) -> None:
         self.session_db = session_db
+        self.notification_service = (
+            NotificationService(background_tasks) if background_tasks else None
+        )
 
     def get(self, id: UUID) -> Shipment | None:
         return self.session_db.get(Shipment, id)
 
-    def add(self, req_body: ShipmentCreate, seller_id: str) -> Shipment | None:
+    async def add(self, req_body: ShipmentCreate, seller_id: str) -> Shipment | None:
 
         partner_name = req_body.delivery_partner or "default"
 
@@ -40,9 +45,11 @@ class ShipmentService:
         self.session_db.commit()
         self.session_db.refresh(new_shipment)
 
+        self._notify(new_shipment)
+
         return new_shipment
 
-    def update(
+    async def update(
         self, shipment_update: ShipmentUpdate, shipment_id: UUID
     ) -> Shipment | None:
 
@@ -66,6 +73,8 @@ class ShipmentService:
         self.session_db.commit()
         self.session_db.refresh(shipment)
 
+        self._notify(shipment)
+
         return shipment
 
     async def delete(self, shipment_id: UUID) -> None:
@@ -79,3 +88,18 @@ class ShipmentService:
 
         self.session_db.delete(shipment)
         self.session_db.commit()
+
+    def _notify(self, shipment: Shipment):
+        match shipment.status:
+            case ShipmentStatus.placed:
+                self.notification_service.send_email(
+                    recipients=[shipment.client_contact_email],
+                    subject="Your order has been shipped",
+                    body=f"Your Order with {shipment.seller.name} has been placed and ready to go",
+                )
+            case ShipmentStatus.out_for_delivery:
+                self.notification_service.send_email(
+                    recipients=[shipment.client_contact_email],
+                    subject="Your order is on the way",
+                    body=f"Your Order with {shipment.seller.name} has been picked up and on the way",
+                )

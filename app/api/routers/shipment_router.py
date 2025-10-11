@@ -9,6 +9,7 @@ from app.schemas.shipment_schema import ShipmentCreate, ShipmentRead, ShipmentUp
 from app.services.shipment_service import ShipmentService
 from app.utils import decode_access_token
 from app.auth.security import oauth2_scheme_seller
+from fastapi import BackgroundTasks
 
 
 router = APIRouter(prefix="/shipment", tags=["Shipment"])
@@ -29,7 +30,7 @@ async def get_shipment_by_id(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Inavalid access token"
         )
 
-    shipment = ShipmentService(session_db).get(id)
+    shipment = ShipmentService(session_db).get(id)  # type: ignore
 
     if shipment is None:
         raise HTTPException(
@@ -45,6 +46,7 @@ async def create_shipment(
     token: Annotated[str, Depends(oauth2_scheme_seller)],
     req_body: ShipmentCreate,
     session_db: SessionDep,
+    background_tasks: BackgroundTasks,
 ):
 
     user = decode_access_token(token)
@@ -54,7 +56,7 @@ async def create_shipment(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Inavalid access token"
         )
 
-    shipment = ShipmentService(session_db).add(req_body, user["user"]["id"])  # type: ignore
+    shipment = await ShipmentService(session_db, background_tasks).add(req_body, user["user"]["id"])  # type: ignore
 
     return shipment
 
@@ -66,6 +68,7 @@ async def update_shipment(
     shipment_id: UUID,
     req_body: ShipmentUpdate,
     session_db: SessionDep,
+    background_tasks: BackgroundTasks,
 ):
 
     user = decode_access_token(token)
@@ -75,7 +78,9 @@ async def update_shipment(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Inavalid access token"
         )
 
-    shipment = ShipmentService(session_db).update(req_body, shipment_id)
+    shipment = await ShipmentService(session_db, background_tasks).update(
+        req_body, shipment_id
+    )
 
     return shipment
 

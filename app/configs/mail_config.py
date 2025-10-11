@@ -1,4 +1,3 @@
-import asyncio
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from app.configs import env_config
 
@@ -14,21 +13,4 @@ conf = ConnectionConfig(
     USE_CREDENTIALS=True,
 )
 
-fastmail = FastMail(conf)
-
-
-# async def send_message():
-#     await fastmail.send_message(
-#         message=MessageSchema(
-#             recipients=["thebest283@gmail.com"],
-#             subject="Your test mail",
-#             body="Fuck you and all your stupid and useless course",
-#             subtype=MessageType.plain,
-#         )
-#     )
-#     print("Email sent!")
-
-
-# asyncio.run(send_message())
-
-# print(env_config)
+fastmailConfig = FastMail(conf)

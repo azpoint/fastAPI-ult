@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 from sqlmodel import SQLModel
 
-from app.env_config import POSTGRES_URL
+from app.configs.env_config import POSTGRES_URL
 from app.database.models import Shipment, Seller, DeliveryPartner
 
 

@@ -35,6 +35,8 @@ class Shipment(SQLModel, table=True):
         )
     )
 
+    client_contact_email: EmailStr | None
+    client_contact_phone: str | None
     content: str = Field(min_length=1, max_length=255)
     weight: float = Field(gt=0, le=25000)
     destination: str = Field(min_length=1, max_length=255)

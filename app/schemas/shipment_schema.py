@@ -1,6 +1,6 @@
 from datetime import datetime
 from uuid import UUID
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 from app.database.models import Seller, ShipmentStatus, DeliveryPartner
 
 
@@ -16,6 +16,8 @@ class ShipmentRead(BaseModel):
 
 
 class ShipmentCreate(BaseModel):
+    client_contact_email: EmailStr
+    client_contact_phone: str | None = None
     content: str
     weight: float = Field(le=25000)
     destination: str

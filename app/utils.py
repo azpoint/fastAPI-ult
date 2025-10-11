@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 from fastapi import HTTPException
-from app.env_config import JWT_SECRET, JWT_ALGORITHM
+from app.configs.env_config import JWT_SECRET, JWT_ALGORITHM
 import jwt
 
 
