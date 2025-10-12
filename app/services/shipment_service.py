@@ -94,12 +94,24 @@ class ShipmentService:
             case ShipmentStatus.placed:
                 self.notification_service.send_email(
                     recipients=[shipment.client_contact_email],
-                    subject="Your order has been shipped",
-                    body=f"Your Order with {shipment.seller.name} has been placed and ready to go",
+                    subject="Your order has been placed",
+                    body=f"Your order with {shipment.seller.name} has been placed and is ready to go.",
                 )
             case ShipmentStatus.out_for_delivery:
                 self.notification_service.send_email(
                     recipients=[shipment.client_contact_email],
+                    subject="Your order has been picked up",
+                    body=f"Your order with {shipment.seller.name} has been picked up.",
+                )
+            case ShipmentStatus.in_transit:
+                self.notification_service.send_email(
+                    recipients=[shipment.client_contact_email],
                     subject="Your order is on the way",
-                    body=f"Your Order with {shipment.seller.name} has been picked up and on the way",
+                    body=f"Your order with {shipment.seller.name} is on the way.",
+                )
+            case ShipmentStatus.delivered:
+                self.notification_service.send_email(
+                    recipients=[shipment.client_contact_email],
+                    subject="Your order has been delivered",
+                    body=f"Your order with {shipment.seller.name} is completed.",
                 )

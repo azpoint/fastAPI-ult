@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter
 from typing import Any
 from fastapi import status, HTTPException, Depends
+from sqlalchemy import null
 from app.database.session import SessionDep
 from app.database.models import Shipment
 from app.schemas.shipment_schema import ShipmentCreate, ShipmentRead, ShipmentUpdate
@@ -30,7 +31,7 @@ async def get_shipment_by_id(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Inavalid access token"
         )
 
-    shipment = ShipmentService(session_db).get(id)  # type: ignore
+    shipment = ShipmentService(session_db, null).get(id)  # type: ignore
 
     if shipment is None:
         raise HTTPException(
