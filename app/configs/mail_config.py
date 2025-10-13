@@ -1,5 +1,7 @@
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
+from pydantic import DirectoryPath
 from app.configs import env_config
+from app.utils import TEMPLATE_DIR
 
 conf = ConnectionConfig(
     MAIL_USERNAME=env_config.MAIL_USERNAME,  # type: ignore
@@ -11,6 +13,7 @@ conf = ConnectionConfig(
     MAIL_STARTTLS=True,  # use STARTTLS (required for Gmail)
     MAIL_SSL_TLS=False,  # don't use implicit SSL
     USE_CREDENTIALS=True,
+    TEMPLATE_FOLDER=TEMPLATE_DIR,
 )
 
 fastmailConfig = FastMail(conf)

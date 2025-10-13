@@ -92,10 +92,14 @@ class ShipmentService:
     def _notify(self, shipment: Shipment):
         match shipment.status:
             case ShipmentStatus.placed:
-                self.notification_service.send_email(
+                self.notification_service.send_template_email(
                     recipients=[shipment.client_contact_email],
                     subject="Your order has been placed",
-                    body=f"Your order with {shipment.seller.name} has been placed and is ready to go.",
+                    context={
+                        "seller": shipment.seller.name,
+                        "delivery_partner": shipment.delivery_partner.name,
+                    },
+                    template_name="mail_placed.html",
                 )
             case ShipmentStatus.out_for_delivery:
                 self.notification_service.send_email(
